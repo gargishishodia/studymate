@@ -3,3 +3,4 @@ pgvector
 python-dotenv
 fastapi[standard]
 uvicorn
+google-generativeai

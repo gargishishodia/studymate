@@ -13,11 +13,16 @@ Uses the local Ollama LLM. Weak spots live in a `weak_spots` table in Supabase.
 """
 
 import json
-import ollama
+
+from google import genai
+from google.genai import types
 
 from database import get_connection
 
-CHAT_MODEL = "llama3.1"
+# One Gemini client, reused across calls. Reads GEMINI_API_KEY from env.
+client = genai.Client()
+
+CHAT_MODEL = "gemini-2.5-flash"
 
 
 def _get_some_notes(limit_chars=4000):
@@ -82,12 +87,12 @@ NOTES:
 {notes}
 """
 
-    response = ollama.chat(
+    response = client.models.generate_content(
         model=CHAT_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        format="json",
+        contents=prompt,
+        config=types.GenerateContentConfig(response_mime_type="application/json"),
     )
-    raw = response["message"]["content"]
+    raw = response.text
 
     try:
         data = json.loads(raw)
@@ -123,9 +128,13 @@ Student's answer: {student_answer}
 
 Reply with ONLY valid JSON: {{"correct": true or false, "feedback": "one short sentence of feedback"}}"""
 
-    response = ollama.chat(model=CHAT_MODEL, messages=[{"role": "user", "content": prompt}], format="json")
+    response = client.models.generate_content(
+        model=CHAT_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(response_mime_type="application/json"),
+    )
     try:
-        data = json.loads(response["message"]["content"])
+        data = json.loads(response.text)
         return {"correct": bool(data.get("correct", False)), "feedback": data.get("feedback", "")}
     except json.JSONDecodeError:
         return {"correct": None, "feedback": f"Model answer: {correct_answer}"}
