@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMate — quiz me</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--ink:#11131f;--ink-soft:#2a2d3d;--paper:#f7f6f2;--line:#e2ddd0;--amber:#d9a441;--amber-deep:#a9742017;--muted:#6f6c63;--ok:#3f7d52;--ok-bg:#eaf3ec;--err:#b4453b;--err-bg:#f7ece9;--radius:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.1;letter-spacing:-0.01em}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px}
+  nav{border-bottom:1px solid var(--line);background:var(--paper)}
+  .nav-in{max-width:720px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:18px}
+  .brand{font-family:"Fraunces",serif;font-weight:600;font-size:18px}
+  .nav-links{display:flex;gap:6px;margin-left:8px}
+  .nav-links a{font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links a.active{background:var(--ink);color:var(--paper)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .who{font-size:13px;color:var(--muted)}
+  .signout{font-size:13px;font-weight:600;color:var(--err);background:none;border:none;cursor:pointer}
+  main{padding:54px 0}
+  .step-label{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px}
+  h2{font-size:clamp(28px,5vw,38px);margin-bottom:10px}
+  .lede{color:var(--muted);margin-bottom:26px;max-width:52ch}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  button.go{font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:none;border-radius:10px;padding:12px 22px;background:var(--ink);color:var(--paper);transition:transform .1s,background .15s}
+  button.go:hover{background:var(--ink-soft)} button.go:active{transform:translateY(1px)} button.go:disabled{opacity:.5;cursor:not-allowed}
+  .note{font-size:14px;margin-top:14px;min-height:18px;color:var(--muted)}
+  .note.err{color:var(--err)}
+  /* quiz */
+  .progress{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;margin-bottom:14px}
+  .qtype{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:10px}
+  .qtext{font-family:"Fraunces",serif;font-size:22px;line-height:1.3;margin-bottom:20px}
+  .opt{display:block;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px;font-family:inherit;font-size:15px;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+  .opt:hover{border-color:var(--amber)}
+  .opt.chosen{border-color:var(--ink);background:#fff}
+  input.short{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;transition:border-color .15s,box-shadow .15s}
+  input.short:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-deep)}
+  .feedback{margin-top:18px;padding:14px 16px;border-radius:10px;font-size:15px}
+  .feedback.right{background:var(--ok-bg);color:var(--ok)}
+  .feedback.wrong{background:var(--err-bg);color:var(--err)}
+  .feedback.neutral{background:var(--paper);color:var(--ink-soft)}
+  .qactions{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+  .scorecard{text-align:center;padding:14px 0}
+  .scorecard .big{font-family:"Fraunces",serif;font-size:56px;color:var(--amber);line-height:1}
+  .scorecard .lbl{color:var(--muted);margin-top:8px}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <nav>
+    <div class="nav-in">
+      <span class="brand">StudyMate</span>
+      <div class="nav-links">
+        <a href="notes.html">Notes</a>
+        <a href="ask.html">Ask</a>
+        <a href="quiz.html" class="active">Quiz</a>
+      </div>
+      <div class="nav-right">
+        <span class="who" id="who"></span>
+        <button class="signout" id="signout">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="step-label">Quiz me</div>
+    <h2>Test yourself</h2>
+    <p class="lede">StudyMate writes a short quiz from your own notes — a mix of multiple-choice and short-answer — and checks how you do.</p>
+
+    <!-- start screen -->
+    <div class="card" id="startCard">
+      <p style="margin-bottom:18px;color:var(--ink-soft)">Ready when you are. Make sure you've added some notes first. If you've quizzed before, this one focuses on what you've been getting wrong.</p>
+      <button class="go" id="startBtn">Start quiz</button>
+      <div class="note" id="startNote"></div>
+      <div id="weakPanel" style="margin-top:22px;display:none">
+        <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:10px">Your weak spots</div>
+        <div id="weakList"></div>
+      </div>
+    </div>
+
+    <!-- question screen -->
+    <div class="card" id="quizCard" style="display:none">
+      <div id="focusBanner" style="display:none;font-size:13px;color:var(--amber);font-weight:600;margin-bottom:10px"></div>
+      <div class="progress" id="progress"></div>
+      <div class="qtype" id="qtype"></div>
+      <div class="qtext" id="qtext"></div>
+      <div id="answerArea"></div>
+      <div class="feedback" id="feedback" style="display:none"></div>
+      <div class="qactions">
+        <button class="go" id="submitBtn">Submit answer</button>
+        <button class="go" id="nextBtn" style="display:none">Next question &rarr;</button>
+      </div>
+    </div>
+
+    <!-- result screen -->
+    <div class="card" id="resultCard" style="display:none">
+      <div class="scorecard">
+        <div class="big" id="scoreBig"></div>
+        <div class="lbl" id="scoreLbl"></div>
+      </div>
+      <div style="text-align:center;margin-top:10px">
+        <button class="go" id="againBtn">New quiz</button>
+      </div>
+    </div>
+  </main>
+
+<script>
+  const API = "http://127.0.0.1:8000";
+  const $ = (id)=>document.getElementById(id);
+  const token = localStorage.getItem("studymate_token");
+  if(!token){ window.location.href = "login.html"; }
+  $("who").textContent = localStorage.getItem("studymate_email") || "";
+  $("signout").onclick = ()=>{ localStorage.removeItem("studymate_token"); localStorage.removeItem("studymate_email"); window.location.href="login.html"; };
+
+  let questions = [], idx = 0, score = 0, chosen = null;
+
+  $("startBtn").onclick = async () => {
+    $("startBtn").disabled = true;
+    $("startNote").className = "note";
+    $("startNote").innerHTML = '<span class="spinner"></span>Writing your quiz from your notes…';
+    try{
+      const r = await fetch(`${API}/quiz/generate`,{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({num_questions:4})});
+      if(r.status===401){ window.location.href="login.html"; return; }
+      const d = await r.json();
+      if(d.error){ $("startNote").className="note err"; $("startNote").textContent=d.error; $("startBtn").disabled=false; return; }
+      questions = d.questions; idx = 0; score = 0;
+      if(d.focused_on && d.focused_on.length){ $('focusBanner').style.display='block'; $('focusBanner').textContent = 'Focusing on your weak spots: ' + d.focused_on.join(', '); } else { $('focusBanner').style.display='none'; }
+      $("startCard").style.display="none"; $("quizCard").style.display="block";
+      renderQuestion();
+    }catch(e){ $("startNote").className="note err"; $("startNote").textContent="Can't reach the server. Is it running?"; $("startBtn").disabled=false; }
+  };
+
+  function renderQuestion(){
+    chosen = null;
+    const q = questions[idx];
+    $("progress").textContent = `Question ${idx+1} of ${questions.length}`;
+    $("qtype").textContent = q.type==="mcq" ? "Multiple choice" : "Short answer";
+    $("qtext").textContent = q.question;
+    $("feedback").style.display="none";
+    $("submitBtn").style.display=""; $("submitBtn").disabled=false; $("nextBtn").style.display="none";
+
+    const area = $("answerArea"); area.innerHTML="";
+    if(q.type==="mcq"){
+      q.options.forEach(opt=>{
+        const b=document.createElement("button");
+        b.className="opt"; b.textContent=opt;
+        b.onclick=()=>{ chosen=opt; [...area.children].forEach(c=>c.classList.remove("chosen")); b.classList.add("chosen"); };
+        area.appendChild(b);
+      });
+    } else {
+      const inp=document.createElement("input");
+      inp.className="short"; inp.type="text"; inp.placeholder="Type your answer…";
+      inp.addEventListener("keydown",e=>{ if(e.key==="Enter") $("submitBtn").click(); });
+      area.appendChild(inp);
+    }
+  }
+
+  $("submitBtn").onclick = async () => {
+    const q = questions[idx];
+    let studentAnswer = chosen;
+    if(q.type==="short"){ studentAnswer = $("answerArea").querySelector("input").value.trim(); }
+    if(!studentAnswer){ return; }
+    $("submitBtn").disabled=true;
+    $("feedback").style.display="block"; $("feedback").className="feedback neutral";
+    $("feedback").innerHTML='<span class="spinner"></span>Checking…';
+    try{
+      const r = await fetch(`${API}/quiz/grade`,{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+        body:JSON.stringify({type:q.type,topic:q.topic||'general',question:q.question,correct_answer:q.answer,student_answer:studentAnswer})});
+      const d = await r.json();
+      if(d.correct===true){ score++; $("feedback").className="feedback right"; }
+      else if(d.correct===false){ $("feedback").className="feedback wrong"; }
+      else { $("feedback").className="feedback neutral"; }
+      $("feedback").textContent = d.feedback || "";
+      $("submitBtn").style.display="none";
+      $("nextBtn").style.display="";
+      $("nextBtn").textContent = (idx===questions.length-1) ? "See results →" : "Next question →";
+    }catch(e){ $("feedback").className="feedback err"; $("feedback").textContent="Can't reach the server."; $("submitBtn").disabled=false; }
+  };
+
+  $("nextBtn").onclick = () => {
+    idx++;
+    if(idx < questions.length){ renderQuestion(); }
+    else { showResult(); }
+  };
+
+  function showResult(){
+    $("quizCard").style.display="none"; $("resultCard").style.display="block";
+    $("scoreBig").textContent = `${score}/${questions.length}`;
+    const pct = score/questions.length;
+    $("scoreLbl").textContent = pct===1 ? "Perfect — you know this." : pct>=0.5 ? "Solid. Review the ones you missed." : "Worth another look at your notes.";
+  }
+
+  $("againBtn").onclick = () => {
+    $("resultCard").style.display="none"; $("startCard").style.display="block";
+    $("startBtn").disabled=false; $("startNote").textContent="";
+    loadWeakSpots();
+  };
+
+  async function loadWeakSpots(){
+    try{
+      const r = await fetch(`${API}/quiz/weak-spots`,{headers:{"Authorization":`Bearer ${token}`}});
+      if(!r.ok) return;
+      const d = await r.json();
+      const list = $("weakList"); list.innerHTML = "";
+      if(d.weak_spots && d.weak_spots.length){
+        $("weakPanel").style.display = "block";
+        d.weak_spots.forEach(w=>{
+          const div = document.createElement("div");
+          div.className = "src";
+          div.innerHTML = `<span class="tag">missed ${w.times_missed}×</span>${w.topic}`;
+          list.appendChild(div);
+        });
+      } else {
+        $("weakPanel").style.display = "none";
+      }
+    }catch(e){}
+  }
+  loadWeakSpots();
+
+</script>
+</body>
+</html>

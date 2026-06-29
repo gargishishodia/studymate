@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMate — sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--ink:#11131f;--ink-soft:#2a2d3d;--paper:#f7f6f2;--line:#e2ddd0;--amber:#d9a441;--amber-deep:#a9742017;--muted:#6f6c63;--ok:#3f7d52;--err:#b4453b;--radius:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  h1{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.1;letter-spacing:-0.01em}
+  .box{width:100%;max-width:440px}
+  .eyebrow{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);font-weight:600;margin-bottom:18px}
+  h1{font-size:clamp(36px,7vw,52px);margin-bottom:14px}
+  h1 em{font-style:italic;color:var(--amber)}
+  .sub{color:var(--muted);margin-bottom:30px;max-width:42ch}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  label.fld{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:0 0 7px}
+  input{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px;transition:border-color .15s,box-shadow .15s}
+  input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-deep)}
+  .actions{display:flex;gap:12px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:none;border-radius:10px;padding:12px 22px;transition:transform .1s,opacity .15s}
+  button:active{transform:translateY(1px)}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--ink-soft)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--ink)}
+  .note{font-size:13px;margin-top:16px;min-height:18px}
+  .note.ok{color:var(--ok)} .note.err{color:var(--err)} .note.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="eyebrow">StudyMate</div>
+    <h1>Ask your notes<br>like a <em>person</em>.</h1>
+    <p class="sub">Sign in to upload your notes and ask questions answered from your own material.</p>
+    <div class="card">
+      <label class="fld" for="email">Email</label>
+      <input id="email" type="email" placeholder="you@college.edu" autocomplete="username" />
+      <label class="fld" for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+      <div class="actions">
+        <button class="btn-primary" id="loginBtn">Sign in</button>
+        <button class="btn-ghost" id="signupBtn">Create account</button>
+      </div>
+      <div class="note muted" id="note">Enter your details, or create an account first.</div>
+    </div>
+  </div>
+<script>
+  const API = "http://127.0.0.1:8000";
+  const $ = (id)=>document.getElementById(id);
+  const setNote = (m,k)=>{ $("note").className = "note "+(k||"muted"); $("note").textContent = m; };
+
+  // If already signed in, skip straight to the app.
+  if(localStorage.getItem("studymate_token")){ window.location.href = "notes.html"; }
+
+  $("signupBtn").onclick = async () => {
+    const email=$("email").value.trim(), password=$("password").value;
+    if(!email||!password){ setNote("Enter an email and password first.","err"); return; }
+    setNote("Creating your account…","muted");
+    try{
+      const r = await fetch(`${API}/auth/signup`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+      const d = await r.json();
+      if(r.ok) setNote("Account created. Now click Sign in.","ok");
+      else setNote(d.detail||"Could not create account.","err");
+    }catch(e){ setNote("Can't reach the server. Is it running?","err"); }
+  };
+
+  $("loginBtn").onclick = async () => {
+    const email=$("email").value.trim(), password=$("password").value;
+    if(!email||!password){ setNote("Enter your email and password.","err"); return; }
+    setNote("Signing in…","muted");
+    try{
+      const r = await fetch(`${API}/auth/login`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+      const d = await r.json();
+      if(r.ok && d.access_token){
+        localStorage.setItem("studymate_token", d.access_token);
+        localStorage.setItem("studymate_email", email);
+        window.location.href = "notes.html";   // go to the app
+      } else setNote(d.detail||"Incorrect email or password.","err");
+    }catch(e){ setNote("Can't reach the server. Is it running?","err"); }
+  };
+
+  $("password").addEventListener("keydown",e=>{ if(e.key==="Enter") $("loginBtn").click(); });
+</script>
+</body>
+</html>

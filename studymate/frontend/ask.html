@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMate — ask</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--ink:#11131f;--ink-soft:#2a2d3d;--paper:#f7f6f2;--line:#e2ddd0;--amber:#d9a441;--amber-deep:#a9742017;--muted:#6f6c63;--ok:#3f7d52;--err:#b4453b;--radius:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter",system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.1;letter-spacing:-0.01em}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px}
+  nav{border-bottom:1px solid var(--line);background:var(--paper)}
+  .nav-in{max-width:720px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:18px}
+  .brand{font-family:"Fraunces",serif;font-weight:600;font-size:18px}
+  .nav-links{display:flex;gap:6px;margin-left:8px}
+  .nav-links a{font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:8px}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links a.active{background:var(--ink);color:var(--paper)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .who{font-size:13px;color:var(--muted)}
+  .signout{font-size:13px;font-weight:600;color:var(--err);background:none;border:none;cursor:pointer}
+  main{padding:54px 0}
+  .step-label{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px}
+  h2{font-size:clamp(28px,5vw,38px);margin-bottom:10px}
+  .lede{color:var(--muted);margin-bottom:26px;max-width:52ch}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  label.fld{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:0 0 7px}
+  input{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;transition:border-color .15s,box-shadow .15s}
+  input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-deep)}
+  .actions{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+  button.go{font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:none;border-radius:10px;padding:12px 22px;background:var(--ink);color:var(--paper);transition:transform .1s,background .15s}
+  button.go:hover{background:var(--ink-soft)} button.go:active{transform:translateY(1px)} button.go:disabled{opacity:.5;cursor:not-allowed}
+  .note{font-size:13px;margin-top:14px;min-height:18px}
+  .note.err{color:var(--err)} .note.muted{color:var(--muted)}
+  #answerBox{margin-top:24px;display:none}
+  #answerBox.show{display:block;animation:rise .5s ease both}
+  .answer{background:var(--ink);color:var(--paper);border-radius:var(--radius);padding:24px 26px;font-size:17px;line-height:1.65}
+  .answer .qlabel{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;font-weight:600}
+  .sources{margin-top:18px}
+  .sources h4{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px}
+  .src{background:#fff;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:10px;font-size:14px;color:var(--ink-soft)}
+  .src .tag{font-size:11px;color:var(--amber);font-weight:600;display:block;margin-bottom:4px}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <nav>
+    <div class="nav-in">
+      <span class="brand">StudyMate</span>
+      <div class="nav-links">
+        <a href="notes.html">Notes</a>
+        <a href="ask.html" class="active">Ask</a>
+        <a href="quiz.html">Quiz</a>
+      </div>
+      <div class="nav-right">
+        <span class="who" id="who"></span>
+        <button class="signout" id="signout">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="step-label">Ask</div>
+    <h2>Ask a question</h2>
+    <p class="lede">Ask anything covered in your notes. The answer is grounded in what you uploaded, with its sources shown below.</p>
+    <div class="card">
+      <label class="fld" for="question">Your question</label>
+      <input id="question" type="text" placeholder="e.g. Why do plants look green?" />
+      <div class="actions">
+        <button class="go" id="askBtn">Get answer</button>
+      </div>
+      <div class="note muted" id="note"></div>
+    </div>
+
+    <div id="answerBox">
+      <div class="answer">
+        <div class="qlabel" id="answeredQ">Answer</div>
+        <div id="answerText"></div>
+      </div>
+      <div class="sources" id="sourcesWrap">
+        <h4>Drawn from your notes</h4>
+        <div id="sourcesList"></div>
+      </div>
+    </div>
+  </main>
+
+<script>
+  const API = "http://127.0.0.1:8000";
+  const $ = (id)=>document.getElementById(id);
+  const token = localStorage.getItem("studymate_token");
+  if(!token){ window.location.href = "login.html"; }
+  $("who").textContent = localStorage.getItem("studymate_email") || "";
+  const setNote = (m,k)=>{ $("note").className="note "+(k||"muted"); $("note").textContent=m; };
+
+  $("signout").onclick = ()=>{ localStorage.removeItem("studymate_token"); localStorage.removeItem("studymate_email"); window.location.href="login.html"; };
+
+  $("askBtn").onclick = async () => {
+    const question = $("question").value.trim();
+    if(!question){ setNote("Type a question first.","err"); return; }
+    $("askBtn").disabled = true;
+    $("note").className="note muted";
+    $("note").innerHTML = '<span class="spinner"></span>Thinking… (the first answer can take a few seconds)';
+    $("answerBox").classList.remove("show");
+    try{
+      const r = await fetch(`${API}/query`,{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},body:JSON.stringify({question,k:3})});
+      if(r.status===401){ window.location.href="login.html"; return; }
+      const d = await r.json();
+      if(r.ok){
+        $("answeredQ").textContent = question;
+        $("answerText").textContent = d.answer;
+        const list = $("sourcesList"); list.innerHTML="";
+        (d.sources||[]).forEach((s,i)=>{ const div=document.createElement("div"); div.className="src"; div.innerHTML=`<span class="tag">Source ${i+1}</span>${s}`; list.appendChild(div); });
+        $("sourcesWrap").style.display = (d.sources&&d.sources.length)?"":"none";
+        $("answerBox").classList.add("show");
+        setNote("","muted");
+      } else setNote(d.detail||"Something went wrong.","err");
+    }catch(e){ setNote("Can't reach the server. Is it running?","err"); }
+    finally{ $("askBtn").disabled = false; }
+  };
+
+  $("question").addEventListener("keydown",e=>{ if(e.key==="Enter") $("askBtn").click(); });
+</script>
+</body>
+</html>
